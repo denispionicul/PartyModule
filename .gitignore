@@ -1,0 +1,8 @@
+# Project place file
+/Cooldown.rbxlx
+
+# Roblox Studio lock files
+/*.rbxlx.lock
+/*.rbxl.lock
+
+build/
