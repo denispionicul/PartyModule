@@ -70,19 +70,19 @@ export type Party = typeof(setmetatable({} :: self, Party))
 --PartyModule
 
 --[=[
-	@prop PartyCreated
+	@prop PartyCreated RBXScriptSignal | Signal
 	@within PartyModule
 
 	Fires whenever a party is created. Returns the party as a parameter.
 ]=]
 --[=[
-	@prop PartyRemoved
+	@prop PartyRemoved RBXScriptSignal | Signal
 	@within PartyModule
 
 	Fires whenever a party is removed. Returns the party as a parameter.
 ]=]
 --[=[
-	@prop ServerStarted
+	@prop ServerStarted RBXScriptSignal | Signal
 	@within PartyModule
 
 	Fires whenever a party has started. Returns the party as a parameter.
