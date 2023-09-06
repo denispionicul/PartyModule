@@ -62,9 +62,9 @@ export type Party = typeof(setmetatable({} :: self, Party))
 	.Data { [any]: any } -- An empty table used to store info of your choice.
 	.MaxPlayers number -- The max amount of players there can be inside.
 
-	.PlayerAdded RBXScriptSignal | [Signal](https://sleitnick.github.io/RbxUtil/api/Signal/) -- Fires when a player has been added inside the party. Returns the player as the first parameter.
-	.PlayerRemoved RBXScriptSignal | [Signal](https://sleitnick.github.io/RbxUtil/api/Signal/) -- Fires when a player has been removed inside the party. Returns the player as the first parameter.
-	.OwnerChanged RBXScriptSignal | [Signal](https://sleitnick.github.io/RbxUtil/api/Signal/) -- Fires when the owner changes. Returns the new owner.
+	.PlayerAdded RBXScriptSignal | Signal -- Fires when a player has been added inside the party. Returns the player as the first parameter.
+	.PlayerRemoved RBXScriptSignal | Signal -- Fires when a player has been removed inside the party. Returns the player as the first parameter.
+	.OwnerChanged RBXScriptSignal | Signal -- Fires when the owner changes. Returns the new owner.
 ]=]
 
 --PartyModule
