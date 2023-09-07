@@ -1,5 +1,5 @@
 --!nonstrict
---Version 1.1.0
+--Version 1.1.1
 
 --Settings
 local Debug = false -- Enable if you want extra debug messages
@@ -46,7 +46,7 @@ Party.__index = Party
 --Types
 
 type self = {
-	Id: number,
+	Id: string,
 	Name: string,
 	Players: { Player },
 	OwnerId: number,
@@ -64,7 +64,7 @@ export type Party = typeof(setmetatable({} :: self, Party))
 --[=[
 	@interface Party
 	@within Party
-	.Id number -- The Id of the party.
+	.Id string -- The Id of the party.
 	.Name string -- The Name of the party.
 	.Players { Player } -- The players inside the party.
 	.OwnerId number -- The Owner's User Id.
@@ -184,12 +184,12 @@ end
 --[=[
 	Returns the party with the provided Id.
 
-	@param Id number -- The id of the party to search for.
+	@param Id string -- The id of the party to search for.
 
 	@return Party -- The party. 
 ]=]
-function PartyModule.GetPartyFromId(Id: number): Party
-	assert(type(Id) == "number", "Please provide a valid id.")
+function PartyModule.GetPartyFromId(Id: string): Party
+	assert(type(Id) == "string", "Please provide a valid id.")
 
 	return Parties[Id]
 end
@@ -326,7 +326,7 @@ function Party.AddPlayer(self: Party, Player: Player): boolean
 		end,
 	})
 
-	return Exists:IsNone() and #TargetPlayers <= self.MaxPlayers
+	return Exists:IsNone() and TargetPlayers <= self.MaxPlayers
 end
 
 --[=[
