@@ -1,1 +1,0 @@
-"use strict";(self.webpackChunkdocs=self.webpackChunkdocs||[]).push([[917],{63891:s=>{s.exports=JSON.parse('{"sourceUrl":"https://github.com/denispionicul/PartyModule/blob/main","baseUrl":"/PartyModule/","classOrder":[],"apiCategories":[]}')}}]);
