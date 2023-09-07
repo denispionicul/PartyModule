@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="generator" content="Docusaurus v2.3.1">
 <title data-rh="true">PartyModule | PartyModule</title><meta data-rh="true" name="viewport" content="width=device-width,initial-scale=1"><meta data-rh="true" name="twitter:card" content="summary_large_image"><meta data-rh="true" property="og:url" content="https://denispionicul.github.io/PartyModule/api/PartyModule"><meta data-rh="true" name="docusaurus_locale" content="en"><meta data-rh="true" name="docusaurus_tag" content="default"><meta data-rh="true" name="docsearch:language" content="en"><meta data-rh="true" name="docsearch:docusaurus_tag" content="default"><meta data-rh="true" property="og:title" content="PartyModule | PartyModule"><meta data-rh="true" name="description" content="This is the module itself, used to construct a party and find parties."><meta data-rh="true" property="og:description" content="This is the module itself, used to construct a party and find parties."><link data-rh="true" rel="canonical" href="https://denispionicul.github.io/PartyModule/api/PartyModule"><link data-rh="true" rel="alternate" href="https://denispionicul.github.io/PartyModule/api/PartyModule" hreflang="en"><link data-rh="true" rel="alternate" href="https://denispionicul.github.io/PartyModule/api/PartyModule" hreflang="x-default"><link rel="stylesheet" href="/PartyModule/assets/css/styles.19a5646f.css">
-<link rel="preload" href="/PartyModule/assets/js/runtime~main.d9c2928e.js" as="script">
-<link rel="preload" href="/PartyModule/assets/js/main.5d0319e1.js" as="script">
+<link rel="preload" href="/PartyModule/assets/js/runtime~main.9feb8beb.js" as="script">
+<link rel="preload" href="/PartyModule/assets/js/main.9e00c7d7.js" as="script">
 </head>
 <body class="navigation-with-keyboard">
 <script>!function(){function e(e){document.documentElement.setAttribute("data-theme",e)}var t=function(){var e=null;try{e=localStorage.getItem("theme")}catch(e){}return e}();null!==t?e(t):window.matchMedia("(prefers-color-scheme: dark)").matches?e("dark"):(window.matchMedia("(prefers-color-scheme: light)").matches,e("light"))}()</script><div id="__docusaurus">
@@ -69,7 +69,7 @@ PartyModule<span class="token punctuation">.</span>ServerStarted<span class="tok
 <p>The party array.</p>
 </span></span></div><div>
 <p>Returns an array of all the parties.</p>
-</div><div class="divider_rE5g"></div><h3 class="anchor anchorWithStickyNavbar_LWe7" id="GetPartyFromId"><code style="text-decoration:none">GetPartyFromId</code><a href="#GetPartyFromId" class="hash-link" aria-label="Direct link to GetPartyFromId" title="Direct link to GetPartyFromId">​</a></h3><div class="repositoryDetailsContainer_BPdw"><a class="sourceButton_sEho" href="https://github.com/denispionicul/PartyModule/blob/main/src/init.lua#L191"><div class="sourceButtonText_Vh0m">&lt;/&gt;</div></a></div><div class="memberString_GwaU"><code>PartyModule<!-- -->.</code><code class="green_DgR4">GetPartyFromId</code><code>(</code><div class="inset_uKQm"><div><code>Id<!-- -->: </code><code class="blue_P4bS">number</code><span class="inlineDescription_G7Er">-- <span>
+</div><div class="divider_rE5g"></div><h3 class="anchor anchorWithStickyNavbar_LWe7" id="GetPartyFromId"><code style="text-decoration:none">GetPartyFromId</code><a href="#GetPartyFromId" class="hash-link" aria-label="Direct link to GetPartyFromId" title="Direct link to GetPartyFromId">​</a></h3><div class="repositoryDetailsContainer_BPdw"><a class="sourceButton_sEho" href="https://github.com/denispionicul/PartyModule/blob/main/src/init.lua#L191"><div class="sourceButtonText_Vh0m">&lt;/&gt;</div></a></div><div class="memberString_GwaU"><code>PartyModule<!-- -->.</code><code class="green_DgR4">GetPartyFromId</code><code>(</code><div class="inset_uKQm"><div><code>Id<!-- -->: </code><code class="blue_P4bS">string</code><span class="inlineDescription_G7Er">-- <span>
 <p>The id of the party to search for.</p>
 </span></span></div></div><code>) → </code><code class="blue_P4bS"><a style="text-decoration:underline;color:inherit" href="/PartyModule/api/Party#Party">Party</a></code><span class="inlineDescription_G7Er">-- <span>
 <p>The party.</p>
@@ -162,7 +162,7 @@ PartyModule<span class="token punctuation">.</span>ServerStarted<span class="tok
                 {
                     &quot;name&quot;: &quot;Id&quot;,
                     &quot;desc&quot;: &quot;The id of the party to search for.&quot;,
-                    &quot;lua_type&quot;: &quot;number&quot;
+                    &quot;lua_type&quot;: &quot;string&quot;
                 }
             ],
             &quot;returns&quot;: [
@@ -361,7 +361,7 @@ PartyModule<span class="token punctuation">.</span>ServerStarted<span class="tok
         &quot;path&quot;: &quot;src/init.lua&quot;
     }
 }</pre></details></div><div class="col col--3"><div class="tableOfContents_bqdL thin-scrollbar"><ul class="table-of-contents table-of-contents__left-border"><li><a href="#types" class="table-of-contents__link toc-highlight">Types</a></li><li><a href="#properties" class="table-of-contents__link toc-highlight">Properties</a><ul><li><a href="#CurrentParty" class="table-of-contents__link toc-highlight">CurrentParty</a></li><li><a href="#PartyCreated" class="table-of-contents__link toc-highlight">PartyCreated</a></li><li><a href="#PartyRemoved" class="table-of-contents__link toc-highlight">PartyRemoved</a></li><li><a href="#PlayersLoaded" class="table-of-contents__link toc-highlight">PlayersLoaded</a></li><li><a href="#ServerStarted" class="table-of-contents__link toc-highlight">ServerStarted</a></li></ul></li><li><a href="#functions" class="table-of-contents__link toc-highlight">Functions</a><ul><li><a href="#GetOwner" class="table-of-contents__link toc-highlight">.GetOwner</a></li><li><a href="#GetParties" class="table-of-contents__link toc-highlight">.GetParties</a></li><li><a href="#GetPartyFromId" class="table-of-contents__link toc-highlight">.GetPartyFromId</a></li><li><a href="#GetPartyFromPlayer" class="table-of-contents__link toc-highlight">.GetPartyFromPlayer</a></li><li><a href="#IsInParty" class="table-of-contents__link toc-highlight">.IsInParty</a></li><li><a href="#IsOwner" class="table-of-contents__link toc-highlight">.IsOwner</a></li><li><a href="#new" class="table-of-contents__link toc-highlight">.new</a></li></ul></li></ul></div></div></div></div></main></div></div><footer class="footer footer--dark"><div class="container container-fluid"><div class="footer__bottom text--center"><div class="footer__copyright">Copyright © 2023 denispionicul. Built with Moonwave and Docusaurus.</div></div></div></footer></div>
-<script src="/PartyModule/assets/js/runtime~main.d9c2928e.js"></script>
-<script src="/PartyModule/assets/js/main.5d0319e1.js"></script>
+<script src="/PartyModule/assets/js/runtime~main.9feb8beb.js"></script>
+<script src="/PartyModule/assets/js/main.9e00c7d7.js"></script>
 </body>
 </html>
