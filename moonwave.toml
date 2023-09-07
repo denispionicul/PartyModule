@@ -2,7 +2,7 @@ gitSourceBranch = "main"
 
 classOrder = [
     "PartyModule",
-    "Party
+    "Party"
 ]
 
 [home]
