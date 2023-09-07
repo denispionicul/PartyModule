@@ -1,5 +1,9 @@
 --!nonstrict
---Version 1.0.0
+--Version 1.1.0
+
+--Settings
+local Debug = false -- Enable if you want extra debug messages
+local PlayerJoinTime = 10 -- The amount of time to wait for a player
 
 --Services
 local RunService = game:GetService("RunService")
@@ -13,6 +17,12 @@ local Signal = require(script.Parent:FindFirstChild("Signal") or script.Signal)
 local Trove = require(script.Parent:FindFirstChild("Trove") or script.Trove)
 local Option = require(script.Parent:FindFirstChild("Option") or script.Option)
 local Promise = require(script.Parent:FindFirstChild("Promise") or script.Promise)
+
+local function DebugPrint(msg: string)
+	if Debug then
+		print(msg)
+	end
+end
 
 local Parties = {}
 local RNG = Random.new()
@@ -99,11 +109,44 @@ export type Party = typeof(setmetatable({} :: self, Party))
 		print(Party.OwnerId) -- prints the owner user id
 	end)
 	```
+
+	:::note
+		The party will try to keep the player instances inside the Player array.
+		If A player does not join the game in the amount of time specified in PlayerJoinTime, it will be replaced by their UserId.
+	:::
+]=]
+--[=[
+	@prop PlayersLoaded RBXScriptSignal | Signal
+	@within PartyModule
+
+	This is an event that fires after all the Player array inside the party has finished loading.
+	This is usually useful if added inside the [PartyModule.ServerStarted] event.
+
+	```lua
+	-- In Server the player teleports to
+	local PartyModule = require(Path.PartyModule)
+
+	PartyModule.ServerStarted:Connect(function(Party: Party)
+		PartyModule.PlayersLoaded:Connect(function(Players: { Player })
+			print(Players) -- prints the array of players (or user id on failed players)
+		end)
+
+		PartyModule.PlayersLoaded:Wait() -- waiting for all players to load
+	end)
+	```
+]=]
+--[=[
+	@prop CurrentParty Party
+	@within PartyModule
+
+	The party from the [PartyModule.ServerStarted] event.
 ]=]
 
 PartyModule.PartyCreated = Signal.new()
 PartyModule.PartyDestroyed = Signal.new()
 PartyModule.ServerStarted = Signal.new()
+PartyModule.PlayersLoaded = Signal.new()
+PartyModule.CurrentParty = nil
 
 --[=[
 	Returns the party that the given player is in, if any.
@@ -348,6 +391,17 @@ function Party.Start(self: Party)
 		return TeleportService:TeleportAsync(self.PlaceId, self.Players, Options)
 	end)
 		:andThen(function(Info)
+			local function ConvertToId(PlayerTable: { Player }): { number }
+				local Converted = {}
+
+				for _, Player: Player in pairs(PlayerTable) do
+					table.insert(Converted, Player.UserId)
+				end
+
+				return Converted
+			end
+
+			self.Players = ConvertToId(self.Players)
 			local SavingData = {
 				ReservedServerAccessCode = Info.ReservedServerAccessCode,
 				Party = HttpService:JSONEncode(self),
@@ -408,9 +462,41 @@ do -- misc
 				return ActiveServers:GetAsync(game.PrivateServerId)
 			end)
 				:andThen(function(Data)
-					local PartyTable = HttpService:JSONDecode(Data.Party)
-					PartyModule.ServerStarted:Fire(PartyTable)
+					local PartyTable: Party = HttpService:JSONDecode(Data.Party)
 
+					Promise.each(PartyTable.Players, function(Value, _)
+						return Promise.new(function(resolve, reject, onCancel)
+							local Player: Player = Players:GetPlayerByUserId(Value) or Players:WaitForChild(Players:GetNameFromUserIdAsync(Value), PlayerJoinTime)
+
+							if Player then
+								resolve(Player)
+							else
+								reject(Value)
+							end
+						end)
+							:andThen(function(Player: Player)
+								local Index = table.find(PartyTable.Players, Player.UserId)
+								PartyTable.Players[Index] = Player
+							end)
+							:catch(function(UserId: number)
+								DebugPrint(
+									"Couldn't transform the player with the user id "
+										.. UserId
+										.. " into an instance. He did not join in time."
+								)
+							end)
+					end)
+						:andThen(function()
+							DebugPrint("Successfully converted all players")
+						end)
+						:catch(function()
+							DebugPrint("Not all players were converted to instances.")
+						end):finally(function()
+							PartyModule.PlayersLoaded:Fire(PartyTable.Players)
+						end)
+
+					PartyModule.ServerStarted:Fire(PartyTable)
+					PartyModule.CurrentParty = PartyTable
 					local function CheckServer()
 						if #Players:GetPlayers() == 0 then
 							Promise.Try(function()

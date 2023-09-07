@@ -1,1 +1,10 @@
 gitSourceBranch = "main"
+
+classOrder = [
+    "PartyModule",
+    "Party
+]
+
+[home]
+enabled = false
+includeReadme = false # Optional
