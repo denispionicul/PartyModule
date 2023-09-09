@@ -1,9 +1,10 @@
 --!nonstrict
---Version 1.1.1
+--Version 1.2.0
 
 --Settings
 local Debug = false -- Enable if you want extra debug messages
 local PlayerJoinTime = 10 -- The amount of time to wait for a player
+local CanJoinMultipleParties = false -- Set to true if you want players to join more than 1 party at once for some reason
 
 --Services
 local RunService = game:GetService("RunService")
@@ -17,6 +18,7 @@ local Signal = require(script.Parent:FindFirstChild("Signal") or script.Signal)
 local Trove = require(script.Parent:FindFirstChild("Trove") or script.Trove)
 local Option = require(script.Parent:FindFirstChild("Option") or script.Option)
 local Promise = require(script.Parent:FindFirstChild("Promise") or script.Promise)
+local EnumList = require(script.Parent:FindFirstChild("EnumList") or script.EnumList)
 
 local function DebugPrint(msg: string)
 	if Debug then
@@ -45,6 +47,12 @@ Party.__index = Party
 
 --Types
 
+export type PartyType = {
+	Public: Enum,
+	Friends: Enum,
+	Private: Enum,
+}
+
 type self = {
 	Id: string,
 	Name: string,
@@ -53,6 +61,8 @@ type self = {
 	PlaceId: number,
 	Data: { [any]: any },
 	MaxPlayers: number,
+	Type: PartyType,
+	Password: number | string,
 
 	PlayerAdded: RBXScriptSignal | Signal,
 	PlayerRemoved: RBXScriptSignal | Signal,
@@ -60,6 +70,14 @@ type self = {
 }
 
 export type Party = typeof(setmetatable({} :: self, Party))
+
+--[=[
+	@interface PartyType
+	@within Party
+	.Public Enum -- Public, all players can join the party.
+	.Friends Enum -- Friends, only the owner's friends can join the party.
+	.Private Enum -- Private, people can only join the group with a password. To set a password. All you have to do is Party.Password = "example".
+]=]
 
 --[=[
 	@interface Party
@@ -71,6 +89,8 @@ export type Party = typeof(setmetatable({} :: self, Party))
 	.PlaceId number -- The place Id the players will teleport to.
 	.Data { [any]: any } -- An empty table used to store info of your choice.
 	.MaxPlayers number -- The max amount of players there can be inside.
+	.Type PartyType -- The behaviour of the party.
+	.Password number | string -- The password in case the Party Type is Private.
 
 	.PlayerAdded RBXScriptSignal | Signal -- Fires when a player has been added inside the party. Returns the player as the first parameter.
 	.PlayerRemoved RBXScriptSignal | Signal -- Fires when a player has been removed inside the party. Returns the player as the first parameter.
@@ -114,6 +134,8 @@ export type Party = typeof(setmetatable({} :: self, Party))
 		The party will try to keep the player instances inside the Player array.
 		If A player does not join the game in the amount of time specified in PlayerJoinTime, it will be replaced by their UserId.
 	:::
+
+	@tag In-Game
 ]=]
 --[=[
 	@prop PlayersLoaded RBXScriptSignal | Signal
@@ -134,12 +156,21 @@ export type Party = typeof(setmetatable({} :: self, Party))
 		PartyModule.PlayersLoaded:Wait() -- waiting for all players to load
 	end)
 	```
+	@tag In-Game
 ]=]
 --[=[
 	@prop CurrentParty Party
 	@within PartyModule
 
 	The party from the [PartyModule.ServerStarted] event.
+	@tag In-Game
+]=]
+--[=[
+	@prop PartyType PartyType
+	@within PartyModule
+
+	@readonly
+	A enum of all the party types.
 ]=]
 
 PartyModule.PartyCreated = Signal.new()
@@ -147,6 +178,11 @@ PartyModule.PartyDestroyed = Signal.new()
 PartyModule.ServerStarted = Signal.new()
 PartyModule.PlayersLoaded = Signal.new()
 PartyModule.CurrentParty = nil
+PartyModule.PartyType = EnumList.new("PartyType", {
+	"Public",
+	"Friends",
+	"Private",
+})
 
 --[=[
 	Returns the party that the given player is in, if any.
@@ -186,7 +222,7 @@ end
 
 	@param Id string -- The id of the party to search for.
 
-	@return Party -- The party. 
+	@return Party -- The party.
 ]=]
 function PartyModule.GetPartyFromId(Id: string): Party
 	assert(type(Id) == "string", "Please provide a valid id.")
@@ -244,12 +280,13 @@ end
 	@param PlaceId number -- The place that the players will teleport to.
 	@param Name string? -- The name the party will have. If not provided, it will be the owner's name.
 	@param MaxPlayers number? -- The max amount of players that will be able to join. If not provided, defaults to 8.
+	@param Type PartyType? -- Sets the type of the party. Got to [PartyModule.PartyType] for more info.
 
 	@return Party -- A new Party.
 
 	@error "Server Only" -- Happens when this function is called on the client.
 ]=]
-function PartyModule.new(Owner: Player, PlaceId: number, Name: string?, MaxPlayers: number?): Party
+function PartyModule.new(Owner: Player, PlaceId: number, Name: string?, MaxPlayers: number?, Type: PartyType?): Party
 	assert(typeof(Owner) == "Instance" and Owner:IsA("Player"), "Please provide a player as the owner.")
 	assert(type(PlaceId) == "number", "Please provide a valid Place Id.")
 	assert(RunService:IsServer(), "A party can only be created on the server.")
@@ -267,6 +304,8 @@ function PartyModule.new(Owner: Player, PlaceId: number, Name: string?, MaxPlaye
 	self.PlaceId = PlaceId
 	self.Data = {}
 	self.MaxPlayers = MaxPlayers or 8
+	self.Type = if PartyModule.PartyType:BelongsTo(Type) then Type else PartyModule.PartyType.Public
+	self.Password = nil
 
 	self.PlayerAdded = self._Trove:Construct(Signal)
 	self.PlayerRemoved = self._Trove:Construct(Signal)
@@ -281,12 +320,6 @@ end
 
 --Party
 
---[=[
-	@method tostring
-	@within Party
-
-	@return string
-]=]
 function Party.__tostring(_)
 	return "Party"
 end
@@ -299,18 +332,25 @@ end
 
 	@server
 	@param Player Player -- The Player that will be added.
+	@param Password number | string? -- The password of the party. Should only use this if party type is private.
 
 	@return boolean -- A boolean indicating if the player has been successfully added.
 
 	@error "Server Only" -- Happens when this method is called on the client.
 	@error "No Player" -- Happens when no valid player is provided.
 ]=]
-function Party.AddPlayer(self: Party, Player: Player): boolean
+function Party.AddPlayer(self: Party, Player: Player, Password: number | string?): boolean
 	assert(typeof(Player) == "Instance" and Player:IsA("Player"), "Please provide a valid player.")
 	assert(RunService:IsServer(), "AddPlayer can only be called on the server.")
 
+	if not CanJoinMultipleParties and PartyModule.GetPartyFromPlayer(Player) then
+		warn("Player " .. Player.Name .. " is already in a party.")
+		return false
+	end
+
 	local Exists = Option.Wrap(table.find(self.Players, Player))
-	local TargetPlayers = #self.Players + 1
+	local Type = self.Type
+	local Status = false
 
 	Exists:Match({
 		["Some"] = function(_)
@@ -318,15 +358,25 @@ function Party.AddPlayer(self: Party, Player: Player): boolean
 		end,
 		["None"] = function()
 			if #self.Players < self.MaxPlayers then
-				table.insert(self.Players, Player)
-				self.PlayerAdded:Fire(Player)
+				if
+					Type == PartyModule.PartyType.Public
+					or (Type == PartyModule.PartyType.Friends and PartyModule.GetOwner(self)
+						:IsFriendsWith(Player.UserId))
+					or (Type == PartyModule.PartyType.Private and Password == self.Password)
+				then
+					table.insert(self.Players, Player)
+					self.PlayerAdded:Fire(Player)
+					Status = true
+				else
+					DebugPrint("Could not add player. This is due to not being friends or password not being right.")
+				end
 			else
 				warn("Cannot add player " .. Player.Name .. " due to max players.")
 			end
 		end,
 	})
 
-	return Exists:IsNone() and TargetPlayers <= self.MaxPlayers
+	return Status
 end
 
 --[=[
@@ -453,6 +503,8 @@ function Party.Destroy(self: Party)
 	Parties[self.Id] = nil
 	PartyModule.PartyDestroyed:Fire(self)
 	self._Trove:Destroy()
+	table.clear(self.Players)
+	table.clear(self.Data)
 end
 
 do -- misc
@@ -466,7 +518,8 @@ do -- misc
 
 					Promise.each(PartyTable.Players, function(Value, _)
 						return Promise.new(function(resolve, reject, onCancel)
-							local Player: Player = Players:GetPlayerByUserId(Value) or Players:WaitForChild(Players:GetNameFromUserIdAsync(Value), PlayerJoinTime)
+							local Player: Player = Players:GetPlayerByUserId(Value)
+								or Players:WaitForChild(Players:GetNameFromUserIdAsync(Value), PlayerJoinTime)
 
 							if Player then
 								resolve(Player)
@@ -491,7 +544,8 @@ do -- misc
 						end)
 						:catch(function()
 							DebugPrint("Not all players were converted to instances.")
-						end):finally(function()
+						end)
+						:finally(function()
 							PartyModule.PlayersLoaded:Fire(PartyTable.Players)
 						end)
 

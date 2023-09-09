@@ -11,7 +11,7 @@ There are 4 **main** ways to download PartyModule:
 
 * Add it to your [Wally](https://wally.run/) dependencies.
 ```
-"denispionicul/partymodule@1.1.0"
+"denispionicul/partymodule@1.2.0"
 ```
 * Get the Roblox file in [Releases](https://github.com/denispionicul/PartyModule/releases) and add it in your Roblox Studio.
 
