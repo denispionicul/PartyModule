@@ -73,7 +73,7 @@ export type Party = typeof(setmetatable({} :: self, Party))
 
 --[=[
 	@interface PartyType
-	@within Party
+	@within PartyModule
 	.Public Enum -- Public, all players can join the party.
 	.Friends Enum -- Friends, only the owner's friends can join the party.
 	.Private Enum -- Private, people can only join the group with a password. To set a password. All you have to do is Party.Password = "example".
